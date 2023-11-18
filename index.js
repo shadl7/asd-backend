@@ -6,6 +6,12 @@ const mongoose = require('mongoose');
 const router = require('./router/index')
 const errorMiddleware = require('./middlewares/error-middleware');
 
+const https = require( "https" );
+const fs = require('fs');
+const privateKey  = fs.readFileSync('privkey.pem', 'utf8');
+const certificate = fs.readFileSync('fullchain.pem', 'utf8');
+const credentials = {key: privateKey, cert: certificate};
+
 const PORT = process.env.PORT || 5000;
 const app = express()
 
@@ -24,7 +30,7 @@ const start = async () => {
             useNewUrlParser: true,
             useUnifiedTopology: true
         })
-        app.listen(PORT, () => console.log(`Server started on PORT = ${PORT}`))
+        https.createServer(credentials, app).listen(PORT, () => console.log(`Server started on PORT = ${PORT}`))
     } catch (e) {
         console.log(e);
     }
