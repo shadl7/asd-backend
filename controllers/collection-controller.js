@@ -38,7 +38,7 @@ class CollectionController {
     async updateCollection(req, res, next) {
         try {
             const {collection} = req.body;
-            return res.json(collectionService.updateCollection(collection));
+            return res.json(await collectionService.updateCollection(collection));
         } catch (e) {
             next(e);
         }

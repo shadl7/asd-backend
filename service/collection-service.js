@@ -31,10 +31,11 @@ class CollectionService {
         return collectionDto;
     }
     async updateCollection(collection) {
-        return CollectionModel.findByIdAndUpdate(
-            { _id: mongoose.Types.ObjectId(collection.id)},
-            {name: collection.name, content: collection.content}
-        )
+        return new CollectionDto(await CollectionModel.findByIdAndUpdate(
+            {_id: mongoose.Types.ObjectId(collection.id)},
+            {name: collection.name, content: collection.content},
+            {new: true}
+        ));
     }
 }
 

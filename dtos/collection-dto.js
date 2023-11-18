@@ -1,4 +1,4 @@
-module.exports = class ScriptDto {
+module.exports = class CollectionDto {
     name;
     id;
     content;
