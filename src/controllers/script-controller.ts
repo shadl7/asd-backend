@@ -1,8 +1,12 @@
-const scriptService = require('../service/script-service');
+import express, {NextFunction, Response} from "express";
+import {ScriptDto} from "../dtos/script-dto";
+
+import {scriptService} from '../service/script-service';
 
 class ScriptController {
 
-    async newScript(req, res, next) {
+    async newScript(req: express.Request,
+                    res: Response, next: NextFunction) {
         try {
             // TODO: name validator (not empty)
             // TODO: get author by server (not client)
@@ -14,7 +18,7 @@ class ScriptController {
         }
     }
 
-    async getScripts(req, res, next) {
+    async getScripts(req: express.Request, res: Response, next: NextFunction) {
         // TODO: public/private scripts
         try {
             const {author} = req.body;
@@ -25,7 +29,7 @@ class ScriptController {
         }
     }
 
-    async removeScript(req, res, next) {
+    async removeScript(req: express.Request, res: Response, next: NextFunction) {
         try {
             const {id} = req.body;
             const script = await scriptService.removeScript(id);
@@ -35,7 +39,7 @@ class ScriptController {
         }
     }
 
-    async updateScript(req, res, next) {
+    async updateScript(req: express.Request, res: Response, next: NextFunction) {
         try {
             const {script} = req.body;
             return res.json(scriptService.updateScript(script));
@@ -46,4 +50,4 @@ class ScriptController {
 }
 
 
-module.exports = new ScriptController();
+export const scriptController = new ScriptController();

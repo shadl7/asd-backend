@@ -1,13 +1,13 @@
-const UserModel = require('../models/user-model');
-const bcrypt = require('bcrypt');
-const uuid = require('uuid');
-const mailService = require('./mail-service');
-const tokenService = require('./token-service');
-const UserDto = require('../dtos/user-dto');
-const ApiError = require('../exceptions/api-error');
+import {UserModel} from '../models/user-model';
+import bcrypt from 'bcrypt';
+import uuid from 'uuid';
+import {tokenService} from './token-service';
+import {UserDto} from '../dtos/user-dto';
+import {ApiError} from '../exceptions/api-error';
+import {JwtPayload} from "jsonwebtoken";
 
 class UserService {
-    async registration(email, password) {
+    async registration(email: string, password: string) {
         const candidate = await UserModel.findOne({email})
         if (candidate) {
             throw ApiError.BadRequest(`Пользователь с почтовым адресом ${email} уже существует`)
@@ -16,16 +16,15 @@ class UserService {
         const activationLink = uuid.v4();
 
         const user = await UserModel.create({email, password: hashPassword, activationLink, scripts: []})
-        await mailService.sendActivationMail(email, `${process.env.API_URL}/api/activate/${activationLink}`);
 
         const userDto = new UserDto(user); // id, email, isActivated, scripts, collections
         const tokens = tokenService.generateTokens({...userDto});
-        await tokenService.saveToken(userDto.id, tokens.refreshToken);
+        await tokenService.saveToken(userDto.id as unknown as string, tokens.refreshToken);
 
         return {...tokens, user: userDto}
     }
 
-    async activate(activationLink) {
+    async activate(activationLink: string) {
         const user = await UserModel.findOne({activationLink})
         if (!user) {
             throw ApiError.BadRequest('Некорректная ссылка активации')
@@ -34,7 +33,7 @@ class UserService {
         await user.save();
     }
 
-    async login(email, password) {
+    async login(email: string, password: string) {
         const user = await UserModel.findOne({email})
         if (!user) {
             throw ApiError.BadRequest('Пользователь с таким email не найден')
@@ -46,15 +45,15 @@ class UserService {
         const userDto = new UserDto(user);
         const tokens = tokenService.generateTokens({...userDto});
 
-        await tokenService.saveToken(userDto.id, tokens.refreshToken);
+        await tokenService.saveToken(userDto.id as unknown as string, tokens.refreshToken);
         return {...tokens, user: userDto}
     }
 
-    async logout(refreshToken) {
+    async logout(refreshToken: string) {
         return await tokenService.removeToken(refreshToken);
     }
 
-    async refresh(refreshToken) {
+    async refresh(refreshToken: string) {
         if (!refreshToken) {
             throw ApiError.UnauthorizedError();
         }
@@ -63,17 +62,16 @@ class UserService {
         if (!userData || !tokenFromDb) {
             throw ApiError.UnauthorizedError();
         }
-        const user = await UserModel.findById(userData.id);
+        const user = await UserModel.findById((userData as JwtPayload).id);
+        if (user == null) {
+            throw Error('User not found')
+        }
         const userDto = new UserDto(user);
         const tokens = tokenService.generateTokens({...userDto});
 
-        await tokenService.saveToken(userDto.id, tokens.refreshToken);
+        await tokenService.saveToken(userDto.id as unknown as string, tokens.refreshToken);
         return {...tokens, user: userDto}
-    }
-
-    async getAllUsers() { // TODO: remove?
-        return UserModel.find();
     }
 }
 
-module.exports = new UserService();
+export const userService = new UserService();

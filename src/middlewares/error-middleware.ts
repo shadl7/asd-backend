@@ -1,6 +1,7 @@
-const ApiError = require('../exceptions/api-error');
+import {ApiError} from '../exceptions/api-error';
+import express, {NextFunction} from "express";
 
-module.exports = function (err, req, res, next) {
+export function errorMW(err: any, req: express.Request, res: express.Response, next: NextFunction) {
     console.log(err);
     if (err instanceof ApiError) {
         return res.status(err.status).json({message: err.message, errors: err.errors})

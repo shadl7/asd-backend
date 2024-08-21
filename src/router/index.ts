@@ -1,10 +1,11 @@
-const Router = require('express').Router;
-const userController = require('../controllers/user-controller');
-const scriptController = require('../controllers/script-controller');
-const collectionController = require('../controllers/collection-controller');
-const router = new Router();
-const {body} = require('express-validator');
-const authMiddleware = require('../middlewares/auth-middleware');
+import * as core from "express-serve-static-core";
+import {Router} from "express";
+
+import {userController} from '../controllers/user-controller';
+import {scriptController} from '../controllers/script-controller';
+import {collectionController} from '../controllers/collection-controller';
+export const router: core.Router = Router();
+import {body} from 'express-validator';
 
 router.post('/registration',
     body('email').isEmail(),
@@ -15,8 +16,6 @@ router.post('/login', userController.login);
 router.post('/logout', userController.logout);
 router.get('/activate/:link', userController.activate);
 router.get('/refresh', userController.refresh);
-router.get('/users', authMiddleware, userController.getUsers);
-
 
 router.post('/scripts', scriptController.getScripts) // TODO: CamelCase
 router.post('/newscript', scriptController.newScript)
@@ -28,5 +27,3 @@ router.post('/collections', collectionController.getCollections)
 router.post('/newCollection', collectionController.newCollection)
 router.post('/removeCollection', collectionController.removeCollection)
 router.post('/updateCollection', collectionController.updateCollection)
-
-module.exports = router

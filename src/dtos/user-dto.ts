@@ -1,11 +1,13 @@
-module.exports = class UserDto {
+import {IUser} from "../models/user-model";
+
+export class UserDto {
     email;
     id;
     isActivated;
     scripts;
     collections;
 
-    constructor(model) {
+    constructor(model: IUser) {
         this.email = model.email;
         this.id = model._id;
         this.isActivated = model.isActivated;

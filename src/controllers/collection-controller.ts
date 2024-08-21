@@ -1,8 +1,9 @@
-const collectionService = require('../service/collection-service');
-
+import {collectionService} from '../service/collection-service';
+import express, {NextFunction, Response} from "express";
+import {CollectionDto} from "../dtos/collection-dto";
 class CollectionController {
 
-    async newCollection(req, res, next) {
+    async newCollection(req: express.Request, res: Response, next: NextFunction) {
         try {
             // TODO: name validator (not empty)
             // TODO: get author by server (for security)
@@ -14,7 +15,7 @@ class CollectionController {
         }
     }
 
-    async getCollections(req, res, next) {
+    async getCollections(req: express.Request, res: Response, next: NextFunction) {
         // TODO: public/private scripts
         try {
             const {author} = req.body;
@@ -25,7 +26,7 @@ class CollectionController {
         }
     }
 
-    async removeCollection(req, res, next) {
+    async removeCollection(req: express.Request, res: Response, next: NextFunction) {
         try {
             const {id} = req.body;
             const collection = await collectionService.removeCollection(id);
@@ -35,7 +36,7 @@ class CollectionController {
         }
     }
 
-    async updateCollection(req, res, next) {
+    async updateCollection(req: express.Request, res: Response, next: NextFunction) {
         try {
             const {collection} = req.body;
             return res.json(await collectionService.updateCollection(collection));
@@ -46,4 +47,4 @@ class CollectionController {
 }
 
 
-module.exports = new CollectionController();
+export const collectionController = new CollectionController();

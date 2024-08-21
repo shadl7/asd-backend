@@ -1,41 +1,47 @@
-const ScriptModel = require('../models/script-model');
-const UserModel = require('../models/user-model');
-const ScriptDto = require('../dtos/script-dto');
-const mongoose = require("mongoose");
+import {IScript, ScriptModel} from '../models/script-model';
+import {IUser, UserModel} from '../models/user-model';
+import {ScriptDto} from '../dtos/script-dto';
+import mongoose, {Types} from "mongoose";
 
 class ScriptService {
-    async newScript(name, content, config, author) {
+    async newScript(name: string, content: string, config: string, author: string) {
         const script = await ScriptModel.create({name, content, config, author})
         const scriptDto = new ScriptDto(script);
         const user = await UserModel.findOne({_id: scriptDto.author})
+        if (user == null) {
+            throw new Error('User not found')
+        }
         user.scripts.push(scriptDto.id)
         user.save()
         return {script: scriptDto}
     }
-    async getScripts(user){
+    async getScripts(user: string){
         // TODO: read author.scripts and generate array from scriptDto
-        return (await ScriptModel.find({author: mongoose.Types.ObjectId(user)}))
+        return (await ScriptModel.find({author: user}))
             .map((el) => {return new ScriptDto(el)});
     }
 
-    async removeScript(id) {
+    async removeScript(id: string) {
         const script = await ScriptModel.findById(id)
+        if (script == null) {
+            throw new Error('Script not found')
+        }
         const scriptDto = new ScriptDto(script);
         const authorID = scriptDto.author;
         UserModel.findByIdAndUpdate(authorID, {
             $pullAll: {
                 scripts: [{_id: scriptDto.id}],
             },
-        }, function (err, docs) {});
-        ScriptModel.findByIdAndRemove(id, function (err, docs) {})
+        }, function (err: never, docs: never) {});
+        ScriptModel.findByIdAndRemove(id, function (err: never, docs: never) {})
         return scriptDto;
     }
-    async updateScript(script) {
+    async updateScript(script: ScriptDto) {
         return ScriptModel.findByIdAndUpdate(
-            { _id: mongoose.Types.ObjectId(script.id)},
+            { _id: script.id},
             {name: script.name, content: script.content, config: script.config}
         )
     }
 }
 
-module.exports = new ScriptService();
+export const scriptService = new ScriptService();

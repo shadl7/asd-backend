@@ -1,15 +1,20 @@
-const userService = require('../service/user-service');
-const {validationResult} = require('express-validator');
-const ApiError = require('../exceptions/api-error');
+import {userService} from '../service/user-service';
+import {validationResult} from 'express-validator';
+import {ApiError} from '../exceptions/api-error';
+import express, { NextFunction, Response } from "express";
+interface AuthRequestBody {
+    email: string;
+    password: string;
+}
 
 class UserController {
-    async registration(req, res, next) {
+    async registration(req: express.Request, res: Response, next: NextFunction) {
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return next(ApiError.BadRequest('Ошибка при валидации', errors.array()))
             }
-            const {email, password} = req.body;
+            const {email, password} = req.body as unknown as AuthRequestBody;
             const userData = await userService.registration(email, password);
             res.cookie('refreshToken', userData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true})
             return res.json(userData);
@@ -18,9 +23,9 @@ class UserController {
         }
     }
 
-    async login(req, res, next) {
+    async login(req: express.Request, res: Response, next: NextFunction) {
         try {
-            const {email, password} = req.body;
+            const {email, password} = req.body as unknown as AuthRequestBody;
             const userData = await userService.login(email, password);
             res.cookie('refreshToken', userData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true})
             return res.json(userData);
@@ -29,8 +34,9 @@ class UserController {
         }
     }
 
-    async logout(req, res, next) {
+    async logout(req: express.Request, res: Response, next: NextFunction) {
         try {
+            // @ts-ignore
             const {refreshToken} = req.cookies;
             const token = await userService.logout(refreshToken);
             res.clearCookie('refreshToken');
@@ -40,19 +46,21 @@ class UserController {
         }
     }
 
-    async activate(req, res, next) {
+    async activate(req: express.Request, res: Response, next: NextFunction) {
         try {
-            const activationLink = req.params.link;
+            // @ts-ignore
+            const activationLink = req.params.link as string;
             await userService.activate(activationLink);
-            return res.redirect(process.env.CLIENT_URL);
+            return res.redirect(process.env.CLIENT_URL || "https://shadl7.ru");
         } catch (e) {
             next(e);
         }
     }
 
-    async refresh(req, res, next) {
+    async refresh(req: express.Request, res: Response, next: NextFunction) {
         try {
-            const {refreshToken} = req.cookies;
+            // @ts-ignore
+            const {refreshToken}: {refreshToken: string} = req.cookies;
             const userData = await userService.refresh(refreshToken);
             res.cookie('refreshToken', userData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true})
             return res.json(userData);
@@ -60,16 +68,7 @@ class UserController {
             next(e);
         }
     }
-
-    async getUsers(req, res, next) {
-        try {
-            const users = await userService.getAllUsers();
-            return res.json(users);
-        } catch (e) {
-            next(e);
-        }
-    }
 }
 
 
-module.exports = new UserController();
+export const userController = new UserController();

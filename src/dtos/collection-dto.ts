@@ -1,15 +1,15 @@
-module.exports = class ScriptDto {
+import {ICollection} from "../models/collection-model";
+
+export class CollectionDto {
     name;
     id;
     content;
-    config;
     author;
 
-    constructor(model) {
+    constructor(model: ICollection) {
         this.name = model.name;
         this.id = model._id;
         this.content = model.content;
-        this.config = model.config;
         this.author = model.author;
     }
 }
